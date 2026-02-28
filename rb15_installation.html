@@ -1,3 +1,8 @@
+
+Folder highlights
+Proposal details RB-15 blender investment with $36K–$59K cost and 3.6 yrs payback for custom blends.
+
+rb15_installation.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -62,7 +67,7 @@
 <header>
   <div class="lbl">Technical Layout · RB-15 Ribbon Blender · Qualifirst Foods · Farmhouse Sink Install</div>
   <h1>RB-15 Installation — Interactive Diagram</h1>
-  <div class="sub">All dimensions confirmed on-site &nbsp;·&nbsp; Elevation scale: 1.5 px = 1" &nbsp;·&nbsp; Plan scale: 2.0 px = 1" &nbsp;·&nbsp; Click or hover any component for full spec</div>
+  <div class="sub">All dimensions confirmed on-site &nbsp;·&nbsp; Elevation scale: 1.5 px = 1" &nbsp;·&nbsp; Plan scale: 2.0 px = 1" &nbsp;·&nbsp; Operator figures shown at 5′8″ (68") &nbsp;·&nbsp; Click or hover any component for full spec</div>
 </header>
 
 <!--
@@ -198,7 +203,7 @@
       class="cp" onclick="sel('stepplatform')" onmouseenter="tt(event,'stepplatform')" onmouseleave="ht()"/>
     <!-- Arrow showing operator facing direction (toward trough = upward) -->
     <polygon points="261,187 256,197 266,197" fill="#405070"/>
-    <text x="261" y="210" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#7a8a9a">OP A</text>
+    <text x="261" y="210" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#7a8a9a">OP A · 5′8″</text>
 
     <!-- ══ VIEW DIRECTION INDICATORS ══ -->
     <!-- Front elevation: operator looks UP (from op zone toward trough/railing) -->
@@ -624,7 +629,7 @@
     <!-- Arm reaching LEFT toward trough grate -->
     <line x1="126" y1="228" x2="93" y2="252" stroke="#253545" stroke-width="2.5" stroke-dasharray="3,2"/>
     <text x="143" y="191" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#7a8a9a">OP A</text>
-    <text x="143" y="182" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#405060">loading</text>
+    <text x="143" y="182" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#405060">loading · 5′8″</text>
 
     <!-- ══ OP B — standing at scale on ground floor ══ -->
     <!-- Feet y=482, head y=380. Scale center x=94. Op B at x=130, arm reaching left to bag. -->
@@ -635,7 +640,7 @@
     <line x1="130" y1="436" x2="145" y2="482" stroke="#253545" stroke-width="3.5"/>
     <line x1="113" y1="407" x2="94" y2="415" stroke="#253545" stroke-width="2.5" stroke-dasharray="3,2"/>
     <text x="130" y="371" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#7a8a9a">OP B</text>
-    <text x="130" y="362" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#405060">bagging</text>
+    <text x="130" y="362" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#405060">bagging · 5′8″</text>
 
     <!-- ══ KEY ANNOTATIONS ══ -->
     <!-- 41.6" operator zone -->
@@ -742,7 +747,7 @@ const C = {
   butterfly: { tag:'Supplier 3 — Fill Equipment', color:'#f0a500', title:'Proportional Butterfly Valve (dispense 64.5")', body:'Electro-pneumatic, recipe-selectable opening %. 30–40% for flour, 80% for coarser. Dispense point at 64.5" from ground. 4–6" bore, 304 SS, tri-clamp ends.', cost:'$1,200–$2,600 (valve + actuator)', sup:'WeighPack Systems · All-Fill Inc. · Spee-Dee Packaging' },
   funnel: { tag:'Supplier 2 — Local SS Fabricator', color:'#2dcc7a', title:'Reducing Funnels — Set of 3', body:'1.5", 2", 3" outlet sizes. Tri-clamp top. Clamp on/off in 30 seconds. Dust control during flour bagging.', cost:'$600–$1,000 (include in hopper order)', sup:'DERA Engineering or JR Custom' },
   scale: { tag:'Supplier 3 — Fill Equipment', color:'#f0a500', title:'Scale + Weigh Controller + Bag Station (table 42")', body:'Scale table at 42". Bag opening at ~57" — 7.5" below the 64.5" dispense point. Scale: 18"×18", 0–50 kg, ±5g, foot pedal. Controller: pre-act shutoff, auto-learn correction, 8-SKU recipe memory. Weights: 5.000, 3.778, 1.482, 1.634, 2.026, 2.519, 3.745, 3.9225 kg.', cost:'$1,800–$3,800', sup:'WeighPack Systems · All-Fill Inc. · Spee-Dee Packaging' },
-  stepplatform: { tag:'Supplier 4 — Ancillary', color:'#8892a4', title:'6" Operator Step Platform (maximum safe height)', body:'304 SS, anti-slip, 40"×24", railing on open sides. Positioned between the trough back face and the beam — in the 41.6" operator zone (see side view). Raises grate perceived height to 36" above operator\'s feet. With step, head at 188" from ground: 6" clearance to beam at 194". Do not exceed 6" — this is the maximum with this beam.', cost:'$500–$1,200', sup:'DERA or JR Custom — same order as hopper' }
+  stepplatform: { tag:'Supplier 4 — Ancillary', color:'#8892a4', title:'6" Operator Step Platform (maximum safe height)', body:'304 SS, anti-slip, 40"×24", railing on open sides. Positioned between the trough back face and the beam — in the 41.6" operator zone (see side view). Raises grate perceived height to 36" above operator\'s feet. Operator figures shown at 5\'8" (68"). With step, head at 188" from ground: 6" clearance to beam at 194". Do not exceed 6" — this is the maximum with this beam.', cost:'$500–$1,200', sup:'DERA or JR Custom — same order as hopper' }
 };
 
 const tt = (e,id) => {
