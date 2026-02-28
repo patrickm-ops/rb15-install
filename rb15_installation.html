@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RB-15 Farmhouse Sink Layout — Interactive Diagram</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0e1117; --surface:#131929; --border:#1f2a3c;
+    --green:#2dcc7a; --amber:#f0a500; --blue:#4a9eff;
+    --gray:#8892a4; --light:#c8d0de; --white:#e8edf5;
+    --deck-fill:#1c2637; --hi:rgba(45,204,122,0.10);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--light); font-family:'IBM Plex Sans',sans-serif; padding:36px 20px; }
+  header { max-width:1340px; margin:0 auto 28px; border-bottom:1px solid var(--border); padding-bottom:16px; }
+  .lbl { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--green); letter-spacing:2px; text-transform:uppercase; margin-bottom:5px; }
+  h1 { font-size:23px; font-weight:600; color:var(--white); letter-spacing:-0.4px; margin-bottom:3px; }
+  .sub { font-size:12px; color:var(--gray); font-family:'IBM Plex Mono',monospace; }
+
+  /* Three-panel layout: plan view full-width top, two elevation views below */
+  .plan-row { max-width:1340px; margin:0 auto 18px; }
+  .elev-row { max-width:1340px; margin:0 auto 24px; display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+
+  .panel { background:var(--surface); border:1px solid var(--border); border-radius:4px; overflow:hidden; }
+  .pvl { background:var(--deck-fill); border-bottom:1px solid var(--border); padding:8px 14px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--amber); letter-spacing:1.5px; text-transform:uppercase; display:flex; justify-content:space-between; align-items:center; }
+  .pvl span { color:var(--gray); font-size:9px; }
+  svg { display:block; width:100%; }
+  .cp { cursor:pointer; transition:opacity .1s; }
+  .cp:hover { opacity:.75; }
+
+  #tt { position:fixed; pointer-events:none; z-index:999; max-width:300px; background:#0c111e; border:1px solid var(--green); border-radius:4px; padding:11px 13px; box-shadow:0 8px 28px rgba(0,0,0,.75); opacity:0; transition:opacity .1s; }
+  #tt.vis { opacity:1; }
+  .tt-tag { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--green); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:3px; }
+  .tt-ttl { font-size:13px; font-weight:600; color:var(--white); margin-bottom:5px; line-height:1.3; }
+  .tt-bdy { font-size:11px; color:var(--gray); line-height:1.55; }
+  .tt-cst { margin-top:7px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--amber); border-top:1px solid var(--border); padding-top:5px; }
+  .tt-sup { font-size:10px; color:var(--blue); margin-top:2px; }
+
+  #info { max-width:1340px; margin:0 auto 24px; background:var(--surface); border:1px solid var(--green); border-radius:4px; padding:16px 20px; display:none; }
+  #info.vis { display:block; }
+  .ih { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:9px; }
+  .itag { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--green); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:3px; }
+  .ittl { font-size:16px; font-weight:600; color:var(--white); }
+  .icst { font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--amber); text-align:right; }
+  .isup { font-size:10px; color:var(--blue); text-align:right; margin-top:2px; }
+  .ibdy { font-size:13px; color:var(--gray); line-height:1.7; border-top:1px solid var(--border); padding-top:9px; }
+  .xbtn { background:none; border:1px solid var(--border); color:var(--gray); width:22px; height:22px; border-radius:3px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-left:12px; }
+  .xbtn:hover { border-color:var(--green); color:var(--green); }
+
+  #legend { max-width:1340px; margin:0 auto 28px; display:grid; grid-template-columns:repeat(auto-fill,minmax(195px,1fr)); gap:7px; }
+  .li { background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:7px 10px; cursor:pointer; transition:border-color .12s,background .12s; display:flex; align-items:center; gap:8px; }
+  .li:hover,.li.act { border-color:var(--green); background:var(--hi); }
+  .ldot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .lnm { font-size:11px; color:var(--light); font-weight:500; line-height:1.3; }
+  .lsp { font-size:9px; color:var(--gray); font-family:'IBM Plex Mono',monospace; margin-top:1px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="lbl">Technical Layout · RB-15 Ribbon Blender · Qualifirst Foods · Farmhouse Sink Install</div>
+  <h1>RB-15 Installation — Interactive Diagram</h1>
+  <div class="sub">All dimensions confirmed on-site &nbsp;·&nbsp; Elevation scale: 1.5 px = 1" &nbsp;·&nbsp; Plan scale: 2.0 px = 1" &nbsp;·&nbsp; Click or hover any component for full spec</div>
+</header>
+
+<!--
+╔══════════════════════════════════════════════════════════════════════════╗
+║  PLAN VIEW (top-down, mezzanine level)                                  ║
+║  Scale: 2.0 px = 1"   Canvas: 1300 × 260 (but SVG viewBox sized to fit)║
+║                                                                          ║
+║  This shows the mezzanine deck from above.                              ║
+║  Horizontal = long axis (beam direction, ~95" usable between beams)     ║
+║  Vertical   = depth axis (railing to beam, 66")                         ║
+║                                                                          ║
+║  Layout (horizontal center of diagram):                                 ║
+║    Left beam face:  x=80                                                ║
+║    Right beam face: x=80 + 95×2 = x=270  (95" between beams ×2px/in)  ║
+║    Diagram shows one bay = 190px wide between beams                     ║
+║                                                                          ║
+║    Railing (top of plan): y=60                                          ║
+║    Beam face (bottom):    y=60 + 66×2 = y=192                          ║
+║    Usable depth: 132px = 66"                                            ║
+║                                                                          ║
+║  Trough: 48.9"×24.4" = 98px × 49px                                     ║
+║    Against railing: top edge y=60, bottom edge y=109                   ║
+║    Centered in bay: x_center = 80 + 95 = 175; left x=126, right x=224 ║
+║                                                                          ║
+║  Motor on RIGHT END of trough: x=224 to x=260 (18"×2=36px), y=60-109  ║
+║                                                                          ║
+║  Floor opening 52"×28": centered under trough                          ║
+║    Long: 52"×2=104px centered at x=175: x=123 to x=227                ║
+║    Short: 28"×2=56px, but trough is only 49px deep — opening spans     ║
+║    full trough depth and extends slightly: y=57 to y=113               ║
+║                                                                          ║
+║  Operator zone: between trough bottom edge (y=109) and beam (y=192)    ║
+║    = 83px = 41.6"                                                       ║
+║  Operator shown as circle/ellipse in this zone, x=175 (center of bay) ║
+╚══════════════════════════════════════════════════════════════════════════╝
+-->
+
+<div class="plan-row">
+<div class="panel">
+  <div class="pvl">Plan View — Mezzanine Level (Top-Down)<span>2.5 px = 1" · railing top · beam bottom · motor on right end (corner) · operator zone between trough back and beam</span></div>
+  <svg viewBox="0 0 760 380" xmlns="http://www.w3.org/2000/svg">
+    <!--
+      PLAN VIEW — CCW 90° from previous version
+      Railing = TOP edge (y=80). Beam = BOTTOM (y=245). Depth runs top-to-bottom.
+      Trough long axis = HORIZONTAL (left-right). Scale 2.5px = 1"
+
+      Key coordinates (2.5px/in):
+        Railing:          y=80
+        Trough front face: y=80  (flush against railing)
+        Trough back face:  y=80 + 24.4×2.5 = y=141
+        Beam face:         y=80 + 66×2.5   = y=245
+        Op zone:           y=141 to y=245 = 104px = 41.6"
+
+        Trough left:  x=200, right: x=322  (48.9"×2.5=122px)
+        Motor RIGHT end (corner side): x=322 to x=385  (25"×2.5=62px)
+        Floor opening 52"×28" = 130px×70px: x=196–326 (covers trough), y=80–150 (28" into deck)
+
+      Operator stands at y≈193 (middle of op zone), x≈261 (centre of trough span)
+      looking UPWARD in this diagram (toward railing = toward trough)
+    -->
+    <defs>
+      <pattern id="grid2" width="10" height="10" patternUnits="userSpaceOnUse">
+        <path d="M10 0L0 0 0 10" fill="none" stroke="#0f1520" stroke-width="0.5"/>
+      </pattern>
+      <pattern id="hatch2" width="7" height="7" patternUnits="userSpaceOnUse">
+        <path d="M-1 5L5 -1M-1 8L8 -1M3 8L8 3" stroke="#253040" stroke-width="0.9"/>
+      </pattern>
+    </defs>
+    <rect width="760" height="380" fill="url(#grid2)"/>
+
+    <!-- RAILING — top edge y=80, from left to trough right face (corner) -->
+    <line x1="100" y1="80" x2="322" y2="80" stroke="#3a5070" stroke-width="6"
+      class="cp" onclick="sel('guardrail')" onmouseenter="tt(event,'guardrail')" onmouseleave="ht()"/>
+    <text x="211" y="72" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#3a5070">RAILING / MEZZANINE EDGE</text>
+
+    <!-- BEAM — bottom edge y=245, shown as thick bar y=245–275 -->
+    <rect x="100" y="245" width="460" height="30" fill="#182030" stroke="#253040" stroke-width="1.5"
+      class="cp" onclick="sel('beam')" onmouseenter="tt(event,'beam')" onmouseleave="ht()"/>
+    <text x="330" y="264" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#304060">STRUCTURAL BEAM — 24" deep · runs left-right</text>
+
+    <!-- DECK hatching: left of motor x=100–138 -->
+    <rect x="100" y="80" width="38" height="165" fill="url(#hatch2)" stroke="#1f2a3c" stroke-width="0.5" opacity="0.7"
+      class="cp" onclick="sel('mezzanine')" onmouseenter="tt(event,'mezzanine')" onmouseleave="ht()"/>
+    <!-- Deck op zone between trough back face and beam (op zone), x=138–322 -->
+    <rect x="138" y="141" width="184" height="104" fill="url(#hatch2)" stroke="#1f2a3c" stroke-width="0.5" opacity="0.30"
+      class="cp" onclick="sel('mezzanine')" onmouseenter="tt(event,'mezzanine')" onmouseleave="ht()"/>
+
+    <!-- FLOOR OPENING: 52"×28" = 130px×70px, under trough, from railing -->
+    <!-- Long: x=196–326 (covers trough 200–322 plus slight overhang) -->
+    <!-- Deep: y=80–150 (28"×2.5=70px from railing) -->
+    <rect x="196" y="80" width="130" height="70" fill="#0e1117" stroke="#f0a500" stroke-width="1.5" stroke-dasharray="5,3"/>
+    <text x="261" y="110" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#f0a500">52" × 28" OPENING</text>
+
+    <!-- TROUGH: 122px wide × 61px deep (48.9"×24.4"), against railing y=80–141, x=200–322 -->
+    <rect x="200" y="80" width="122" height="61" fill="#16345e" stroke="#2255a0" stroke-width="2.5" rx="2"
+      class="cp" onclick="sel('trough')" onmouseenter="tt(event,'trough')" onmouseleave="ht()"/>
+    <text x="261" y="108" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#4a8aca">TROUGH</text>
+    <text x="261" y="121" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#2a5a8a">48.9" × 24.4"</text>
+    <!-- Ribbon schematic (horizontal dashes L-R) -->
+    <line x1="208" y1="92" x2="316" y2="92" stroke="#1e4a8a" stroke-width="1.2" stroke-dasharray="7,4"/>
+    <line x1="208" y1="103" x2="316" y2="103" stroke="#1e4a8a" stroke-width="1.2" stroke-dasharray="7,4"/>
+    <line x1="208" y1="114" x2="316" y2="114" stroke="#1e4a8a" stroke-width="1.2" stroke-dasharray="7,4"/>
+    <line x1="208" y1="130" x2="316" y2="130" stroke="#1e4a8a" stroke-width="1.2" stroke-dasharray="7,4"/>
+
+    <!-- MOTOR on LEFT END (open/access side): x=138–200, y=80–141 -->
+    <rect x="138" y="80" width="62" height="61" fill="#152a48" stroke="#1e4a78" stroke-width="2.5" rx="2"
+      class="cp" onclick="sel('motor')" onmouseenter="tt(event,'motor')" onmouseleave="ht()"/>
+    <text x="169" y="107" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#3a6aaa">MOTOR</text>
+    <text x="169" y="119" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#2a5a8a">10HP</text>
+    <text x="169" y="131" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#1e4a78">LEFT END</text>
+
+    <!-- NON-DRIVE END in corner (right): trough right face x=322, railing corner -->
+    <!-- Short railing segment running downward from top railing along right edge -->
+    <line x1="322" y1="80" x2="322" y2="245" stroke="#3a5070" stroke-width="6"
+      class="cp" onclick="sel('guardrail')" onmouseenter="tt(event,'guardrail')" onmouseleave="ht()"/>
+    <text x="330" y="180" font-family="IBM Plex Mono" font-size="8" fill="#3a5070">RAILING</text>
+    <text x="330" y="191" font-family="IBM Plex Mono" font-size="7" fill="#3a5070">(corner)</text>
+    <!-- Non-drive end label -->
+    <text x="322" y="75" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#253545">non-drive end</text>
+
+    <!-- OPERATOR ZONE: y=141–245, x=200–322 — highlighted -->
+    <rect x="200" y="141" width="122" height="104" fill="rgba(37,80,150,0.12)" stroke="rgba(45,130,210,0.35)" stroke-width="1.5" stroke-dasharray="5,4"/>
+    <text x="261" y="186" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#304060" font-weight="500">OPERATOR ZONE</text>
+    <text x="261" y="200" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#2dcc7a">41.6" deep</text>
+
+    <!-- STEP PLATFORM: 40"×12" = 100px×30px, against trough back face y=141, centered on trough x=200–322 -->
+    <rect x="206" y="141" width="100" height="24" fill="#152030" stroke="#253548" stroke-width="1.5" rx="1"
+      class="cp" onclick="sel('stepplatform')" onmouseenter="tt(event,'stepplatform')" onmouseleave="ht()"/>
+    <text x="256" y="157" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#3a5070">STEP PLATFORM +6"</text>
+
+    <!-- OPERATOR A (top-down circle) standing in op zone, facing trough (upward in diagram) -->
+    <circle cx="261" cy="205" r="13" fill="#253545" stroke="#405070" stroke-width="1.5"
+      class="cp" onclick="sel('stepplatform')" onmouseenter="tt(event,'stepplatform')" onmouseleave="ht()"/>
+    <!-- Arrow showing operator facing direction (toward trough = upward) -->
+    <polygon points="261,187 256,197 266,197" fill="#405070"/>
+    <text x="261" y="210" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#7a8a9a">OP A</text>
+
+    <!-- ══ VIEW DIRECTION INDICATORS ══ -->
+    <!-- Front elevation: operator looks UP (from op zone toward trough/railing) -->
+    <text x="400" y="290" font-family="IBM Plex Mono" font-size="8" fill="#253040">↑ FRONT ELEV.</text>
+    <text x="400" y="302" font-family="IBM Plex Mono" font-size="7" fill="#1e2a3a">op looks toward</text>
+    <text x="400" y="312" font-family="IBM Plex Mono" font-size="7" fill="#1e2a3a">railing (up)</text>
+    <line x1="396" y1="296" x2="330" y2="230" stroke="#253040" stroke-width="1" stroke-dasharray="3,3"/>
+    <polygon points="330,230 336,238 340,232" fill="#253040"/>
+
+    <!-- Side elevation: looking LEFT (along long axis toward motor end) -->
+    <text x="400" y="340" font-family="IBM Plex Mono" font-size="8" fill="#253040">← SIDE ELEV.</text>
+    <text x="400" y="352" font-family="IBM Plex Mono" font-size="7" fill="#1e2a3a">looking along</text>
+    <text x="400" y="362" font-family="IBM Plex Mono" font-size="7" fill="#1e2a3a">long axis</text>
+    <line x1="396" y1="344" x2="340" y2="310" stroke="#253040" stroke-width="1" stroke-dasharray="3,3"/>
+    <polygon points="340,310 342,318 348,313" fill="#253040"/>
+
+    <!-- ══ DIMENSION ANNOTATIONS ══ -->
+    <!-- 48.9" trough length — above railing -->
+    <line x1="200" y1="68" x2="322" y2="68" stroke="#4a8aca" stroke-width="1.5"/>
+    <polygon points="200,68 208,65 208,71" fill="#4a8aca"/>
+    <polygon points="322,68 314,65 314,71" fill="#4a8aca"/>
+    <text x="261" y="62" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#4a8aca">48.9" trough</text>
+
+    <!-- Motor callout left — maintenance access label -->
+    <line x1="138" y1="110" x2="108" y2="140" stroke="#1e3a58" stroke-width="0.8" stroke-dasharray="3,3"/>
+    <text x="106" y="152" font-family="IBM Plex Mono" font-size="7" fill="#3a6aaa" text-anchor="middle">drive end —</text>
+    <text x="106" y="162" font-family="IBM Plex Mono" font-size="7" fill="#2dcc7a" text-anchor="middle">open access</text>
+
+    <!-- 24.4" trough depth — left side -->
+    <line x1="170" y1="80" x2="170" y2="141" stroke="#4a8aca" stroke-width="1.5"/>
+    <polygon points="170,80 167,88 173,88" fill="#4a8aca"/>
+    <polygon points="170,141 167,133 173,133" fill="#4a8aca"/>
+    <text x="140" y="114" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#4a8aca" transform="rotate(-90,140,114)">24.4"</text>
+
+    <!-- 41.6" op zone — left side -->
+    <line x1="155" y1="141" x2="155" y2="245" stroke="#2dcc7a" stroke-width="1.5"/>
+    <polygon points="155,141 152,149 158,149" fill="#2dcc7a"/>
+    <polygon points="155,245 152,237 158,237" fill="#2dcc7a"/>
+    <text x="120" y="197" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#2dcc7a" font-weight="600" transform="rotate(-90,120,197)">41.6" op zone</text>
+
+    <!-- 66" total depth — far left -->
+    <line x1="115" y1="80" x2="115" y2="245" stroke="#f0a500" stroke-width="1.5"/>
+    <polygon points="115,80 112,88 118,88" fill="#f0a500"/>
+    <polygon points="115,245 112,237 118,237" fill="#f0a500"/>
+    <text x="108" y="165" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#f0a500" transform="rotate(-90,108,165)">66" railing to beam</text>
+
+    <!-- Scale bar -->
+    <line x1="470" y1="310" x2="595" y2="310" stroke="#304060" stroke-width="1.5"/>
+    <line x1="470" y1="305" x2="470" y2="315" stroke="#304060" stroke-width="1.5"/>
+    <line x1="532" y1="305" x2="532" y2="315" stroke="#304060" stroke-width="1.5"/>
+    <line x1="595" y1="305" x2="595" y2="315" stroke="#304060" stroke-width="1.5"/>
+    <text x="501" y="328" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#304060">25"</text>
+    <text x="563" y="328" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#304060">25"</text>
+    <text x="532" y="342" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#253040">2.5 px = 1"</text>
+
+  </svg>
+</div>
+</div>
+
+<!--
+╔══════════════════════════════════════════════════════════════════════════╗
+║  ELEVATION VIEWS                                                         ║
+║  Scale: 1.5px = 1"  |  y_ground = 482  |  y = 482 - (in × 1.5)        ║
+║                                                                          ║
+║  FRONT VIEW  (looking along long axis — the 48.9" length)               ║
+║    You see: the trough end, motor on far right end of trough             ║
+║    Beam runs L/R across top (beam runs perpendicular to trough length)  ║
+║    Operator stands to left/side in this view                            ║
+║    Key dims: grate height, operator head clearance                      ║
+║                                                                          ║
+║  SIDE VIEW  (looking along short axis — the 24.4" depth)                ║
+║    You see: trough against railing (left), operator zone, beam (right)  ║
+║    Motor is on the END of the trough — NOT visible in this cut          ║
+║    Key dims: 24.4" trough, 41.6" op zone, 66" total, head clearance    ║
+╚══════════════════════════════════════════════════════════════════════════╝
+-->
+
+<div class="elev-row">
+
+<!-- ══════ FRONT ELEVATION ══════
+     Looking AT the long face of the trough (the face the operator stands in front of to load).
+     What you see: 48.9" wide trough face, motor on RIGHT end (corner/railing side), beam spans overhead L-R,
+     deck below with floor opening (52" wide visible here), hopper/scale stack below.
+     The 41.6" operator zone is BEHIND this view (depth going away from viewer).
+     No operator figure — they would be in the foreground blocking the diagram.
+     Scale: 1.5px = 1"   y_ground=482   y = 482 - inches×1.5
+-->
+<div class="panel">
+  <div class="pvl">Front Elevation — Looking at Long Face (48.9" wide) — from operator's viewpoint<span>1.5 px = 1" · operator faces this surface to load · motor on RIGHT end (corner/railing side)</span></div>
+  <svg viewBox="0 0 580 510" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <pattern id="grid" width="12" height="12" patternUnits="userSpaceOnUse">
+        <path d="M12 0L0 0 0 12" fill="none" stroke="#0f1520" stroke-width="0.5"/>
+      </pattern>
+      <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse">
+        <path d="M-1 5L5 -1M-1 8L8 -1M3 8L8 3" stroke="#253040" stroke-width="0.9"/>
+      </pattern>
+    </defs>
+    <rect width="580" height="510" fill="url(#grid)"/>
+
+    <!-- Elevation reference lines -->
+    <line x1="44" y1="482" x2="530" y2="482" stroke="#1e2a3a" stroke-width="1.5"/>
+    <text x="6" y="486" font-family="IBM Plex Mono" font-size="9" fill="#304060">0"</text>
+    <line x1="44" y1="311" x2="530" y2="311" stroke="#253858" stroke-width="0.7" stroke-dasharray="5,4"/>
+    <text x="6" y="308" font-family="IBM Plex Mono" font-size="9" fill="#f0a500">114"</text>
+    <line x1="44" y1="191" x2="530" y2="191" stroke="#253858" stroke-width="0.7" stroke-dasharray="5,4"/>
+    <text x="6" y="188" font-family="IBM Plex Mono" font-size="9" fill="#f0a500">194"</text>
+    <line x1="44" y1="155" x2="530" y2="155" stroke="#253858" stroke-width="0.7" stroke-dasharray="5,4"/>
+    <text x="6" y="152" font-family="IBM Plex Mono" font-size="9" fill="#f0a500">218"</text>
+
+    <!-- BEAM — runs full width overhead (perpendicular to this view, appears as L-R bar) -->
+    <rect x="55" y="155" width="460" height="36" fill="#182030" stroke="#253040" stroke-width="1.5" rx="1"
+      class="cp" onclick="sel('beam')" onmouseenter="tt(event,'beam')" onmouseleave="ht()"/>
+    <text x="285" y="177" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#304060">STRUCTURAL BEAM — 24" deep · runs left-right above trough</text>
+
+    <!-- DECK: visible left and right of floor opening -->
+    <!-- Motor LEFT end: x=135-172 (37px=25"). Trough: x=172-245 (73px=48.9"). -->
+    <!-- Deck left of motor: x=55-135 -->
+    <rect x="55" y="311" width="80" height="9" fill="url(#hatch)" stroke="#253040" stroke-width="1"
+      class="cp" onclick="sel('mezzanine')" onmouseenter="tt(event,'mezzanine')" onmouseleave="ht()"/>
+    <!-- Deck right of trough: x=245-515 (non-drive end / corner side) -->
+    <rect x="245" y="311" width="270" height="9" fill="url(#hatch)" stroke="#253040" stroke-width="1"
+      class="cp" onclick="sel('mezzanine')" onmouseenter="tt(event,'mezzanine')" onmouseleave="ht()"/>
+    <!-- Floor opening annotation (under trough x=172-245) -->
+    <line x1="172" y1="326" x2="245" y2="326" stroke="#f0a500" stroke-width="1"/>
+    <polygon points="172,326 180,323 180,329" fill="#f0a500"/>
+    <polygon points="245,326 237,323 237,329" fill="#f0a500"/>
+    <text x="208" y="338" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#f0a500">52" floor opening</text>
+
+    <!-- CRADLE feet (front pair — at trough edges x=172 and x=232) -->
+    <rect x="172" y="301" width="13" height="10" fill="#1a2838" stroke="#2a3850" stroke-width="1"
+      class="cp" onclick="sel('cradle')" onmouseenter="tt(event,'cradle')" onmouseleave="ht()"/>
+    <rect x="232" y="301" width="13" height="10" fill="#1a2838" stroke="#2a3850" stroke-width="1"
+      class="cp" onclick="sel('cradle')" onmouseenter="tt(event,'cradle')" onmouseleave="ht()"/>
+
+    <!-- MOTOR on LEFT END — open access side. x=135-172 (37px=25"), y=264-323 -->
+    <rect x="135" y="264" width="37" height="59" fill="#152a48" stroke="#1e4a78" stroke-width="2" rx="2"
+      class="cp" onclick="sel('motor')" onmouseenter="tt(event,'motor')" onmouseleave="ht()"/>
+    <text x="153" y="287" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#3a6aaa">MOTOR</text>
+    <text x="153" y="298" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#2a5a8a">10HP</text>
+    <text x="153" y="309" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#1e4a78">LEFT END</text>
+    <!-- Motor callout — open access side -->
+    <line x1="135" y1="283" x2="90" y2="268" stroke="#1e4a78" stroke-width="1"/>
+    <text x="88" y="265" font-family="IBM Plex Mono" font-size="8" fill="#3a6aaa" text-anchor="end">motor — left end</text>
+    <text x="88" y="276" font-family="IBM Plex Mono" font-size="7" fill="#2dcc7a" text-anchor="end">open access ✓</text>
+
+    <!-- Non-drive end label right side -->
+    <text x="262" y="262" font-family="IBM Plex Mono" font-size="7" fill="#3a5070">→ non-drive end / corner</text>
+
+    <!-- TROUGH FRONT FACE — 48.9"=73px wide × 28.8"=43px tall -->
+    <!-- x=172 to x=245 (73px), trough bottom at deck y=311, trough body y=277–311 (34px≈22.7") -->
+    <!-- Trough rim 135" = y=482-202.5=279.5≈280. Bottom 106"=y=323. Height=43px=28.7" ✓ -->
+    <!-- But trough sits ABOVE deck, dipping 8" below. Trough bottom y=323, deck y=311, trough body: y=280-323 -->
+    <rect x="172" y="280" width="73" height="43" fill="#16345e" stroke="#2255a0" stroke-width="2.5" rx="2"
+      class="cp" onclick="sel('trough')" onmouseenter="tt(event,'trough')" onmouseleave="ht()"/>
+    <text x="208" y="300" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#4a8aca">TROUGH</text>
+    <text x="208" y="313" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#2a5a8a">FRONT FACE 48.9"</text>
+
+    <!-- Ribbon schematic (view into trough from front — show ribbon cross-sections) -->
+    <ellipse cx="190" cy="296" rx="9" ry="5" fill="none" stroke="#2a6aaa" stroke-width="1.5" stroke-dasharray="3,2"
+      class="cp" onclick="sel('ribbon')" onmouseenter="tt(event,'ribbon')" onmouseleave="ht()"/>
+    <ellipse cx="208" cy="296" rx="9" ry="5" fill="none" stroke="#2a6aaa" stroke-width="1.5" stroke-dasharray="3,2"
+      class="cp" onclick="sel('ribbon')" onmouseenter="tt(event,'ribbon')" onmouseleave="ht()"/>
+    <ellipse cx="226" cy="296" rx="8" ry="5" fill="none" stroke="#2a6aaa" stroke-width="1.5" stroke-dasharray="3,2"
+      class="cp" onclick="sel('ribbon')" onmouseenter="tt(event,'ribbon')" onmouseleave="ht()"/>
+    <ellipse cx="240" cy="296" rx="6" ry="5" fill="none" stroke="#2a6aaa" stroke-width="1.5" stroke-dasharray="3,2"
+      class="cp" onclick="sel('ribbon')" onmouseenter="tt(event,'ribbon')" onmouseleave="ht()"/>
+
+    <!-- CIP spray bar (runs left-right inside trough) -->
+    <line x1="177" y1="286" x2="240" y2="286" stroke="#1a5a9a" stroke-width="2" stroke-dasharray="4,3"
+      class="cp" onclick="sel('cipbar')" onmouseenter="tt(event,'cipbar')" onmouseleave="ht()"/>
+    <circle cx="186" cy="286" r="2.5" fill="#2a8aff" class="cp" onclick="sel('cipbar')" onmouseenter="tt(event,'cipbar')" onmouseleave="ht()"/>
+    <circle cx="200" cy="286" r="2.5" fill="#2a8aff" class="cp" onclick="sel('cipbar')" onmouseenter="tt(event,'cipbar')" onmouseleave="ht()"/>
+    <circle cx="217" cy="286" r="2.5" fill="#2a8aff" class="cp" onclick="sel('cipbar')" onmouseenter="tt(event,'cipbar')" onmouseleave="ht()"/>
+    <circle cx="232" cy="286" r="2.5" fill="#2a8aff" class="cp" onclick="sel('cipbar')" onmouseenter="tt(event,'cipbar')" onmouseleave="ht()"/>
+
+    <!-- Air purge nozzles -->
+    <rect x="176" y="317" width="8" height="5" fill="#7a5200" stroke="#f0a500" stroke-width="1" rx="1"
+      class="cp" onclick="sel('airpurge')" onmouseenter="tt(event,'airpurge')" onmouseleave="ht()"/>
+    <rect x="200" y="317" width="8" height="5" fill="#7a5200" stroke="#f0a500" stroke-width="1" rx="1"
+      class="cp" onclick="sel('airpurge')" onmouseenter="tt(event,'airpurge')" onmouseleave="ht()"/>
+    <rect x="228" y="317" width="8" height="5" fill="#7a5200" stroke="#f0a500" stroke-width="1" rx="1"
+      class="cp" onclick="sel('airpurge')" onmouseenter="tt(event,'airpurge')" onmouseleave="ht()"/>
+
+    <!-- LID (149"=y258.5) -->
+    <rect x="172" y="259" width="73" height="22" fill="#1c3d6e" stroke="#2a5a9a" stroke-width="1.5" rx="1"
+      class="cp" onclick="sel('lid')" onmouseenter="tt(event,'lid')" onmouseleave="ht()"/>
+    <text x="208" y="273" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#3a6a9a">LID  149"</text>
+
+    <!-- GRATE (156"=y247) -->
+    <rect x="183" y="247" width="51" height="13" fill="#1e4070" stroke="#3a65a8" stroke-width="1.5" rx="1"
+      class="cp" onclick="sel('grate')" onmouseenter="tt(event,'grate')" onmouseleave="ht()"/>
+    <line x1="190" y1="249" x2="190" y2="259" stroke="#4a7aaa" stroke-width="0.8"/>
+    <line x1="198" y1="249" x2="198" y2="259" stroke="#4a7aaa" stroke-width="0.8"/>
+    <line x1="206" y1="249" x2="206" y2="259" stroke="#4a7aaa" stroke-width="0.8"/>
+    <line x1="214" y1="249" x2="214" y2="259" stroke="#4a7aaa" stroke-width="0.8"/>
+    <line x1="222" y1="249" x2="222" y2="259" stroke="#4a7aaa" stroke-width="0.8"/>
+    <line x1="228" y1="249" x2="228" y2="259" stroke="#4a7aaa" stroke-width="0.8"/>
+
+    <!-- DISCHARGE VALVE (104.5"=y325.5) -->
+    <rect x="191" y="319" width="56" height="20" fill="#1a3a1e" stroke="#256a2a" stroke-width="2" rx="2"
+      class="cp" onclick="sel('valve')" onmouseenter="tt(event,'valve')" onmouseleave="ht()"/>
+    <text x="219" y="332" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#3aaa4a">DISCHARGE VALVE  104.5"</text>
+
+    <!-- CHUTE -->
+    <rect x="204" y="339" width="30" height="6" fill="#162416" stroke="#1e4a1e" stroke-width="1"
+      class="cp" onclick="sel('chute')" onmouseenter="tt(event,'chute')" onmouseleave="ht()"/>
+
+    <!-- LEG EXTENSIONS (2 front legs visible) -->
+    <rect x="178" y="379" width="8" height="103" fill="#141e2e" stroke="#1e2e46" stroke-width="1"
+      class="cp" onclick="sel('legs')" onmouseenter="tt(event,'legs')" onmouseleave="ht()"/>
+    <rect x="250" y="379" width="8" height="103" fill="#141e2e" stroke="#1e2e46" stroke-width="1"
+      class="cp" onclick="sel('legs')" onmouseenter="tt(event,'legs')" onmouseleave="ht()"/>
+    <rect x="174" y="476" width="16" height="6" fill="#1a2a3a" stroke="#253545" stroke-width="1"/>
+    <rect x="246" y="476" width="16" height="6" fill="#1a2a3a" stroke="#253545" stroke-width="1"/>
+
+    <!-- HOPPER (top 100.5"=y332, bottom 68.5"=y379) -->
+    <rect x="183" y="344" width="72" height="21" fill="#173626" stroke="#256a3a" stroke-width="2"
+      class="cp" onclick="sel('hopper')" onmouseenter="tt(event,'hopper')" onmouseleave="ht()"/>
+    <polygon points="183,365 255,365 238,379 202,379" fill="#173626" stroke="#256a3a" stroke-width="2"
+      class="cp" onclick="sel('hopper')" onmouseenter="tt(event,'hopper')" onmouseleave="ht()"/>
+    <text x="219" y="357" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#3aaa5a">HOPPER 425L</text>
+    <circle cx="219" cy="350" r="3.5" fill="#1a4a8a" stroke="#2a7aff" stroke-width="1.5"
+      class="cp" onclick="sel('hopperCip')" onmouseenter="tt(event,'hopperCip')" onmouseleave="ht()"/>
+    <!-- Vibrators -->
+    <rect x="166" y="348" width="15" height="10" fill="#1a3a1a" stroke="#3aaa4a" stroke-width="1.5" rx="2"
+      class="cp" onclick="sel('vibrator')" onmouseenter="tt(event,'vibrator')" onmouseleave="ht()"/>
+    <rect x="255" y="348" width="15" height="10" fill="#1a3a1a" stroke="#3aaa4a" stroke-width="1.5" rx="2"
+      class="cp" onclick="sel('vibrator')" onmouseenter="tt(event,'vibrator')" onmouseleave="ht()"/>
+    <rect x="170" y="368" width="15" height="10" fill="#1a3a1a" stroke="#3aaa4a" stroke-width="1.5" rx="2"/>
+    <rect x="251" y="368" width="15" height="10" fill="#1a3a1a" stroke="#3aaa4a" stroke-width="1.5" rx="2"/>
+    <!-- Hopper air purge -->
+    <rect x="178" y="344" width="5" height="7" fill="#7a5200" stroke="#f0a500" stroke-width="1" rx="1"
+      class="cp" onclick="sel('hopperAir')" onmouseenter="tt(event,'hopperAir')" onmouseleave="ht()"/>
+    <rect x="253" y="344" width="5" height="7" fill="#7a5200" stroke="#f0a500" stroke-width="1" rx="1"
+      class="cp" onclick="sel('hopperAir')" onmouseenter="tt(event,'hopperAir')" onmouseleave="ht()"/>
+
+    <!-- BUTTERFLY VALVE (64.5"=y385.5) -->
+    <rect x="196" y="379" width="46" height="16" fill="#1a3a1e" stroke="#256a2a" stroke-width="1.5" rx="1"
+      class="cp" onclick="sel('butterfly')" onmouseenter="tt(event,'butterfly')" onmouseleave="ht()"/>
+    <text x="219" y="390" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#3aaa4a">BUTTERFLY 64.5"</text>
+
+    <!-- FUNNEL -->
+    <polygon points="196,395 242,395 234,407 204,407" fill="#162416" stroke="#2a5a2a" stroke-width="1.5"
+      class="cp" onclick="sel('funnel')" onmouseenter="tt(event,'funnel')" onmouseleave="ht()"/>
+
+    <!-- SCALE TABLE (42"=y419) + BAG (57"=y397) -->
+    <rect x="193" y="419" width="52" height="7" fill="#16222e" stroke="#2a3e56" stroke-width="1.5"
+      class="cp" onclick="sel('scale')" onmouseenter="tt(event,'scale')" onmouseleave="ht()"/>
+    <rect x="197" y="407" width="44" height="12" fill="#14221a" stroke="#2a5a30" stroke-width="1.5" rx="1"
+      class="cp" onclick="sel('scale')" onmouseenter="tt(event,'scale')" onmouseleave="ht()"/>
+    <text x="219" y="416" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#3a8a4a">5 kg BAG</text>
+    <line x1="197" y1="426" x2="197" y2="482" stroke="#1e2e44" stroke-width="2.5"/>
+    <line x1="241" y1="426" x2="241" y2="482" stroke="#1e2e44" stroke-width="2.5"/>
+
+    <!-- STEP PLATFORM on deck, in operator zone (behind trough — shown ghosted to indicate depth) -->
+    <rect x="310" y="302" width="54" height="9" fill="#0f1820" stroke="#1e2e40" stroke-width="1.5" stroke-dasharray="3,2"
+      class="cp" onclick="sel('stepplatform')" onmouseenter="tt(event,'stepplatform')" onmouseleave="ht()"/>
+    <text x="337" y="309" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#253545">STEP (behind)</text>
+
+    <!-- OPERATOR ZONE annotation — behind the trough (depth direction), shown as dashed region -->
+    <rect x="310" y="180" width="130" height="122" fill="rgba(37,53,80,0.08)" stroke="#253545" stroke-width="1" stroke-dasharray="3,4" rx="2"/>
+    <text x="375" y="226" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#405060">OPERATOR</text>
+    <text x="375" y="238" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#405060">ZONE</text>
+    <text x="375" y="250" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#2dcc7a">41.6" behind</text>
+    <text x="375" y="261" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#2dcc7a">trough back face</text>
+    <text x="375" y="275" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#304050">(see side view)</text>
+    <!-- Arrow pointing at trough back face -->
+    <line x1="310" y1="238" x2="248" y2="296" stroke="#253545" stroke-width="1" stroke-dasharray="3,3"/>
+
+    <!-- KEY ANNOTATIONS -->
+    <!-- Trough width 48.9" -->
+    <line x1="172" y1="236" x2="245" y2="236" stroke="#4a8aca" stroke-width="1.5"/>
+    <polygon points="172,236 180,233 180,239" fill="#4a8aca"/>
+    <polygon points="245,236 237,233 237,239" fill="#4a8aca"/>
+    <text x="208" y="230" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#4a8aca">48.9" trough face</text>
+
+    <!-- Grate 42" above deck -->
+    <line x1="145" y1="247" x2="145" y2="311" stroke="#2dcc7a" stroke-width="1"/>
+    <polygon points="145,247 142,255 148,255" fill="#2dcc7a"/>
+    <polygon points="145,311 142,303 148,303" fill="#2dcc7a"/>
+    <text x="108" y="283" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#2dcc7a" transform="rotate(-90,108,283)">42" above deck</text>
+
+    <!-- Head clearance 6" -->
+    <line x1="160" y1="191" x2="160" y2="200" stroke="#f0a500" stroke-width="1.5"/>
+    <polygon points="160,191 157,199 163,199" fill="#f0a500"/>
+    <polygon points="160,200 157,192 163,192" fill="#f0a500"/>
+    <text x="155" y="197" font-family="IBM Plex Mono" font-size="8" fill="#f0a500" text-anchor="end">6"</text>
+    <text x="155" y="207" font-family="IBM Plex Mono" font-size="7" fill="#2dcc7a" text-anchor="end">head to beam</text>
+
+    <!-- 7.5" dispense gap -->
+    <line x1="465" y1="397" x2="465" y2="407" stroke="#304060" stroke-width="1"/>
+    <polygon points="465,397 462,405 468,405" fill="#304060"/>
+    <polygon points="465,407 462,399 468,399" fill="#304060"/>
+    <text x="470" y="404" font-family="IBM Plex Mono" font-size="7" fill="#304060">7.5"</text>
+    <line x1="452" y1="395" x2="465" y2="395" stroke="#304060" stroke-width="0.8" stroke-dasharray="3,2"/>
+    <line x1="452" y1="407" x2="465" y2="407" stroke="#304060" stroke-width="0.8" stroke-dasharray="3,2"/>
+    <text x="448" y="398" font-family="IBM Plex Mono" font-size="7" fill="#2dcc7a" text-anchor="end">64.5" dispense</text>
+    <text x="448" y="410" font-family="IBM Plex Mono" font-size="7" fill="#304060" text-anchor="end">57" bag top</text>
+
+  </svg>
+</div>
+
+<!-- ══════ SIDE (END) ELEVATION ══════
+     Looking along the long axis from one end.
+     What you see: railing on left, 24.4" trough depth, then 41.6" gap to beam on right.
+     Operator A stands in the 41.6" zone. Motor is on the far end (not visible in this cut).
+     Scale: 1.5px = 1"   y_ground=482
+     Horizontal layout:
+       Railing: x=75
+       Trough left face (against railing): x=75
+       Trough right face (24.4"=37px): x=112
+       Beam face (66"=99px from railing): x=174
+       Op zone: x=112 to x=174 = 62px = 41.6"
+-->
+<div class="panel">
+  <div class="pvl">Side (End) Elevation — Looking Along Long Axis<span>1.5 px = 1" · railing left · 24.4" trough · 41.6" op zone · beam right</span></div>
+  <svg viewBox="0 0 520 510" xmlns="http://www.w3.org/2000/svg">
+    <rect width="520" height="510" fill="url(#grid)"/>
+
+    <!-- Elevation reference lines -->
+    <line x1="44" y1="482" x2="476" y2="482" stroke="#1e2a3a" stroke-width="1.5"/>
+    <text x="6" y="486" font-family="IBM Plex Mono" font-size="9" fill="#304060">0"</text>
+    <line x1="44" y1="311" x2="476" y2="311" stroke="#253858" stroke-width="0.7" stroke-dasharray="5,4"/>
+    <text x="6" y="308" font-family="IBM Plex Mono" font-size="9" fill="#f0a500">114"</text>
+    <line x1="44" y1="191" x2="476" y2="191" stroke="#253858" stroke-width="0.7" stroke-dasharray="5,4"/>
+    <text x="6" y="188" font-family="IBM Plex Mono" font-size="9" fill="#f0a500">194"</text>
+    <line x1="44" y1="155" x2="476" y2="155" stroke="#253858" stroke-width="0.7" stroke-dasharray="5,4"/>
+    <text x="6" y="152" font-family="IBM Plex Mono" font-size="9" fill="#f0a500">218"</text>
+
+    <!-- RAILING at x=75 (left) -->
+    <line x1="75" y1="247" x2="75" y2="322" stroke="#3a5070" stroke-width="5"
+      class="cp" onclick="sel('guardrail')" onmouseenter="tt(event,'guardrail')" onmouseleave="ht()"/>
+    <line x1="60" y1="247" x2="118" y2="247" stroke="#3a5070" stroke-width="3"
+      class="cp" onclick="sel('guardrail')" onmouseenter="tt(event,'guardrail')" onmouseleave="ht()"/>
+    <text x="55" y="290" font-family="IBM Plex Mono" font-size="8" fill="#3a5070" text-anchor="middle" transform="rotate(-90,55,290)">RAILING</text>
+
+    <!-- BEAM at x=174 (right, 66"=99px from railing) — full height bar -->
+    <rect x="174" y="155" width="55" height="36" fill="#182030" stroke="#253040" stroke-width="1.5" rx="1"
+      class="cp" onclick="sel('beam')" onmouseenter="tt(event,'beam')" onmouseleave="ht()"/>
+    <text x="201" y="177" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#304060">BEAM 24"</text>
+
+    <!-- DECK: railing x=75, trough right face x=112, deck from x=112 to x=174, plus beyond beam -->
+    <rect x="75" y="311" width="3" height="9" fill="url(#hatch)" stroke="#253040" stroke-width="1"/>
+    <rect x="112" y="311" width="62" height="9" fill="url(#hatch)" stroke="#253040" stroke-width="1"
+      class="cp" onclick="sel('mezzanine')" onmouseenter="tt(event,'mezzanine')" onmouseleave="ht()"/>
+    <rect x="229" y="311" width="247" height="9" fill="url(#hatch)" stroke="#253040" stroke-width="1"/>
+
+    <!-- TROUGH (end-on view): 24.4"=37px wide, shows as a rectangle -->
+    <!-- Trough bottom 106"=y323, rim 135"=y280, height=43px -->
+    <rect x="75" y="280" width="37" height="43" fill="#16345e" stroke="#2255a0" stroke-width="2.5" rx="2"
+      class="cp" onclick="sel('trough')" onmouseenter="tt(event,'trough')" onmouseleave="ht()"/>
+    <!-- End face — show ribbon shaft end-on as a circle -->
+    <circle cx="93" cy="300" r="7" fill="#122840" stroke="#2255a0" stroke-width="1.5"
+      class="cp" onclick="sel('ribbon')" onmouseenter="tt(event,'ribbon')" onmouseleave="ht()"/>
+    <circle cx="93" cy="300" r="2" fill="#1a4a8a" stroke="none"/>
+    <text x="93" y="322" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#2a5a8a">24.4"</text>
+
+    <!-- Lid + Grate (end-on) -->
+    <rect x="75" y="259" width="37" height="22" fill="#1c3d6e" stroke="#2a5a9a" stroke-width="1.5" rx="1"
+      class="cp" onclick="sel('lid')" onmouseenter="tt(event,'lid')" onmouseleave="ht()"/>
+    <rect x="82" y="247" width="22" height="13" fill="#1e4070" stroke="#3a65a8" stroke-width="1.5" rx="1"
+      class="cp" onclick="sel('grate')" onmouseenter="tt(event,'grate')" onmouseleave="ht()"/>
+    <text x="93" y="256" text-anchor="middle" font-family="IBM Plex Mono" font-size="6" fill="#3a65a8">GRATE</text>
+
+    <!-- Motor NOTE: on the far end, not visible in this cut -->
+    <text x="55" y="270" font-family="IBM Plex Mono" font-size="7" fill="#1e3a58" text-anchor="middle" transform="rotate(-90,55,270)">[motor far end]</text>
+
+    <!-- DISCHARGE VALVE -->
+    <rect x="78" y="307" width="30" height="20" fill="#1a3a1e" stroke="#256a2a" stroke-width="2" rx="2"
+      class="cp" onclick="sel('valve')" onmouseenter="tt(event,'valve')" onmouseleave="ht()"/>
+    <text x="93" y="320" text-anchor="middle" font-family="IBM Plex Mono" font-size="6" fill="#3aaa4a">VALVE</text>
+
+    <!-- CHUTE -->
+    <rect x="82" y="327" width="22" height="6" fill="#162416" stroke="#1e4a1e" stroke-width="1"
+      class="cp" onclick="sel('chute')" onmouseenter="tt(event,'chute')" onmouseleave="ht()"/>
+
+    <!-- LEG (end view — 1 leg visible) -->
+    <rect x="81" y="379" width="8" height="103" fill="#141e2e" stroke="#1e2e46" stroke-width="1"
+      class="cp" onclick="sel('legs')" onmouseenter="tt(event,'legs')" onmouseleave="ht()"/>
+    <rect x="77" y="476" width="16" height="6" fill="#1a2a3a" stroke="#253545" stroke-width="1"/>
+
+    <!-- HOPPER (end-on: 30" deep shows as 45px wide) -->
+    <rect x="70" y="333" width="45" height="21" fill="#173626" stroke="#256a3a" stroke-width="2"
+      class="cp" onclick="sel('hopper')" onmouseenter="tt(event,'hopper')" onmouseleave="ht()"/>
+    <polygon points="70,354 115,354 102,379 83,379" fill="#173626" stroke="#256a3a" stroke-width="2"
+      class="cp" onclick="sel('hopper')" onmouseenter="tt(event,'hopper')" onmouseleave="ht()"/>
+    <text x="92" y="347" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#3aaa5a">HOPPER</text>
+    <!-- Vibrators on cone sides -->
+    <rect x="54" y="338" width="16" height="10" fill="#1a3a1a" stroke="#3aaa4a" stroke-width="1.5" rx="2"
+      class="cp" onclick="sel('vibrator')" onmouseenter="tt(event,'vibrator')" onmouseleave="ht()"/>
+    <rect x="54" y="358" width="16" height="10" fill="#1a3a1a" stroke="#3aaa4a" stroke-width="1.5" rx="2"/>
+
+    <!-- BUTTERFLY VALVE -->
+    <rect x="78" y="373" width="30" height="16" fill="#1a3a1e" stroke="#256a2a" stroke-width="1.5" rx="1"
+      class="cp" onclick="sel('butterfly')" onmouseenter="tt(event,'butterfly')" onmouseleave="ht()"/>
+    <text x="93" y="384" text-anchor="middle" font-family="IBM Plex Mono" font-size="6" fill="#3aaa4a">BUTTERFLY</text>
+
+    <!-- FUNNEL -->
+    <polygon points="78,389 108,389 101,401 85,401" fill="#162416" stroke="#2a5a2a" stroke-width="1.5"
+      class="cp" onclick="sel('funnel')" onmouseenter="tt(event,'funnel')" onmouseleave="ht()"/>
+
+    <!-- SCALE TABLE + BAG -->
+    <rect x="73" y="419" width="42" height="7" fill="#16222e" stroke="#2a3e56" stroke-width="1.5"
+      class="cp" onclick="sel('scale')" onmouseenter="tt(event,'scale')" onmouseleave="ht()"/>
+    <rect x="77" y="407" width="34" height="12" fill="#14221a" stroke="#2a5a30" stroke-width="1.5" rx="1"
+      class="cp" onclick="sel('scale')" onmouseenter="tt(event,'scale')" onmouseleave="ht()"/>
+    <text x="94" y="416" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#3a8a4a">5 kg BAG</text>
+    <line x1="79" y1="426" x2="79" y2="482" stroke="#1e2e44" stroke-width="2"/>
+    <line x1="107" y1="426" x2="107" y2="482" stroke="#1e2e44" stroke-width="2"/>
+
+    <!-- STEP PLATFORM in op zone: x=112 to x=162, y=302-311 -->
+    <rect x="112" y="302" width="50" height="9" fill="#152030" stroke="#253548" stroke-width="1.5"
+      class="cp" onclick="sel('stepplatform')" onmouseenter="tt(event,'stepplatform')" onmouseleave="ht()"/>
+    <text x="137" y="309" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#3a5070">STEP +6"</text>
+
+    <!-- OPERATOR A — standing on step, x=143 (center of op zone), feet y=302, head y=200 -->
+    <ellipse cx="143" cy="201" rx="7" ry="8" fill="#253545" stroke="#405070" stroke-width="1.5"/>
+    <line x1="143" y1="209" x2="143" y2="255" stroke="#253545" stroke-width="5"/>
+    <line x1="126" y1="228" x2="160" y2="228" stroke="#253545" stroke-width="3.5"/>
+    <line x1="143" y1="255" x2="128" y2="302" stroke="#253545" stroke-width="3.5"/>
+    <line x1="143" y1="255" x2="158" y2="302" stroke="#253545" stroke-width="3.5"/>
+    <!-- Arm reaching LEFT toward trough grate -->
+    <line x1="126" y1="228" x2="93" y2="252" stroke="#253545" stroke-width="2.5" stroke-dasharray="3,2"/>
+    <text x="143" y="191" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#7a8a9a">OP A</text>
+    <text x="143" y="182" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#405060">loading</text>
+
+    <!-- ══ OP B — standing at scale on ground floor ══ -->
+    <!-- Feet y=482, head y=380. Scale center x=94. Op B at x=130, arm reaching left to bag. -->
+    <ellipse cx="130" cy="381" rx="7" ry="8" fill="#253545" stroke="#405070" stroke-width="1.5"/>
+    <line x1="130" y1="389" x2="130" y2="436" stroke="#253545" stroke-width="5"/>
+    <line x1="113" y1="407" x2="147" y2="407" stroke="#253545" stroke-width="3.5"/>
+    <line x1="130" y1="436" x2="115" y2="482" stroke="#253545" stroke-width="3.5"/>
+    <line x1="130" y1="436" x2="145" y2="482" stroke="#253545" stroke-width="3.5"/>
+    <line x1="113" y1="407" x2="94" y2="415" stroke="#253545" stroke-width="2.5" stroke-dasharray="3,2"/>
+    <text x="130" y="371" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#7a8a9a">OP B</text>
+    <text x="130" y="362" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#405060">bagging</text>
+
+    <!-- ══ KEY ANNOTATIONS ══ -->
+    <!-- 41.6" operator zone -->
+    <line x1="112" y1="350" x2="174" y2="350" stroke="#2dcc7a" stroke-width="2"/>
+    <polygon points="112,350 120,347 120,353" fill="#2dcc7a"/>
+    <polygon points="174,350 166,347 166,353" fill="#2dcc7a"/>
+    <text x="143" y="344" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#2dcc7a" font-weight="600">41.6"</text>
+    <text x="143" y="362" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#2dcc7a">operator zone</text>
+
+    <!-- 24.4" trough depth -->
+    <line x1="75" y1="464" x2="112" y2="464" stroke="#4a8aca" stroke-width="1.5"/>
+    <polygon points="75,464 83,461 83,467" fill="#4a8aca"/>
+    <polygon points="112,464 104,461 104,467" fill="#4a8aca"/>
+    <text x="93" y="477" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#4a8aca">24.4"</text>
+
+    <!-- 66" total -->
+    <line x1="75" y1="450" x2="174" y2="450" stroke="#f0a500" stroke-width="1.5"/>
+    <polygon points="75,450 83,447 83,453" fill="#f0a500"/>
+    <polygon points="174,450 166,447 166,453" fill="#f0a500"/>
+    <text x="124" y="445" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#f0a500">66" railing to beam</text>
+
+    <!-- 28" floor opening -->
+    <line x1="75" y1="325" x2="117" y2="325" stroke="#f0a500" stroke-width="1"/>
+    <polygon points="75,325 83,322 83,328" fill="#f0a500"/>
+    <polygon points="117,325 109,322 109,328" fill="#f0a500"/>
+    <text x="96" y="336" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#f0a500">28" opening</text>
+
+    <!-- Head to beam clearance -->
+    <line x1="285" y1="191" x2="285" y2="201" stroke="#f0a500" stroke-width="1.5"/>
+    <polygon points="285,191 282,199 288,199" fill="#f0a500"/>
+    <polygon points="285,201 282,193 288,193" fill="#f0a500"/>
+    <text x="290" y="198" font-family="IBM Plex Mono" font-size="8" fill="#f0a500">6" head to beam</text>
+    <text x="290" y="208" font-family="IBM Plex Mono" font-size="7" fill="#2dcc7a">max step height</text>
+
+    <!-- Grate 42" above deck -->
+    <line x1="228" y1="247" x2="228" y2="311" stroke="#2dcc7a" stroke-width="1"/>
+    <polygon points="228,247 225,255 231,255" fill="#2dcc7a"/>
+    <polygon points="228,311 225,303 231,303" fill="#2dcc7a"/>
+    <text x="210" y="283" text-anchor="middle" font-family="IBM Plex Mono" font-size="7" fill="#2dcc7a" transform="rotate(-90,210,283)">42" above deck</text>
+
+    <!-- Dispense/bag gap -->
+    <line x1="250" y1="395" x2="250" y2="407" stroke="#304060" stroke-width="1"/>
+    <polygon points="250,395 247,403 253,403" fill="#304060"/>
+    <polygon points="250,407 247,399 253,399" fill="#304060"/>
+    <text x="254" y="403" font-family="IBM Plex Mono" font-size="7" fill="#304060">7.5"</text>
+    <line x1="237" y1="395" x2="250" y2="395" stroke="#2dcc7a" stroke-width="0.8" stroke-dasharray="3,2"/>
+    <line x1="237" y1="407" x2="250" y2="407" stroke="#304060" stroke-width="0.8" stroke-dasharray="3,2"/>
+    <text x="234" y="398" font-family="IBM Plex Mono" font-size="7" fill="#2dcc7a" text-anchor="end">64.5"</text>
+    <text x="234" y="410" font-family="IBM Plex Mono" font-size="7" fill="#304060" text-anchor="end">57"</text>
+
+    <!-- Op zone label at right -->
+    <text x="340" y="195" font-family="IBM Plex Mono" font-size="8" fill="#304060">← 41.6" between trough</text>
+    <text x="340" y="206" font-family="IBM Plex Mono" font-size="7" fill="#253040">back face and beam face</text>
+    <line x1="337" y1="200" x2="175" y2="200" stroke="#253040" stroke-width="0.8"/>
+
+  </svg>
+</div>
+</div>
+
+
+<div id="info">
+  <div class="ih">
+    <div><div class="itag" id="ip-tag"></div><div class="ittl" id="ip-ttl"></div></div>
+    <div style="display:flex;align-items:flex-start;gap:10px">
+      <div><div class="icst" id="ip-cst"></div><div class="isup" id="ip-sup"></div></div>
+      <button class="xbtn" onclick="closePanel()">x</button>
+    </div>
+  </div>
+  <div class="ibdy" id="ip-bdy"></div>
+</div>
+
+<!-- LEGEND -->
+<div id="legend"></div>
+
+<!-- TOOLTIP -->
+<div id="tt">
+  <div class="tt-tag" id="tt-tag"></div>
+  <div class="tt-ttl" id="tt-ttl"></div>
+  <div class="tt-bdy" id="tt-bdy"></div>
+  <div class="tt-cst" id="tt-cst"></div>
+  <div class="tt-sup" id="tt-sup"></div>
+</div>
+
+<script>
+const C = {
+  beam: { tag:'Existing Structure', color:'#8892a4', title:'Structural Beam', body:'24" deep beams on 90" centers (95" outside to outside). Beam underside 194" from ground (80" above deck). Beam top 218". Only ~8" of solid deck between floor opening edge and beam footing — structural engineer must review before cutting. The side view shows clearly how the beam face defines the operator\'s back wall at 66" from the railing.', cost:'Existing — no cost', sup:'Structural engineer review required before floor cut' },
+  mezzanine: { tag:'Existing Structure', color:'#8892a4', title:'Mezzanine Deck (114" from ground)', body:'Deck at 114" from ground. Floor opening 52"×28". The plan view shows the opening positioned within the 66" depth zone, centered under the trough. Only ~8" of solid deck between opening edge and beam footing — structural review before cutting. Guard rails 42" height around opening.', cost:'Floor cut + guard rails: $800–$1,500', sup:'General contractor — structural engineer sign-off required first' },
+  guardrail: { tag:'Supplier 5 — Installation', color:'#3a5070', title:'Guard Rail — 42" Height, Swing-Gate', body:'Required around the 52"×28" floor opening. 42" height, removable/swing-gate. The railing at the mezzanine edge is the left reference point in the side view — all 66" of usable mezzanine depth is measured from this railing face to the beam face.', cost:'Included in installation ($800–$1,500)', sup:'General contractor' },
+  cradle: { tag:'Supplier 1 — Paul O. Abbe', color:'#4a9eff', title:'Custom Support Cradle (6–8" tall)', body:'304 SS frame, 6–8" tall, bolts to deck surface. Replaces standard 35.5" legs. Distributes 2,100 lb operating load across ~11 sq ft. The plan view shows the cradle footprint straddling the floor opening — trough sits on cradle, discharge valve hangs through the opening below.', cost:'$1,500–$3,000', sup:'Paul O. Abbe — specify when ordering blender' },
+  trough: { tag:'Supplier 1 — Paul O. Abbe', color:'#4a9eff', title:'RB-15 Trough — 48.9"L × 24.4"W × 28.8"H', body:'Main mixing vessel, 15 cu ft, 304 SS. Long axis runs parallel to the railing (left-right in plan view). Trough sits against the railing — the 24.4" width occupies the railing-side portion of the 66" depth. Trough bottom at 106" from ground (8" below deck). Motor mounts on one end of the long axis — out of the operator zone entirely.', cost:'Included in base ($22,000–$32,000 total)', sup:'Paul O. Abbe · Aurora IL · 630-350-3012' },
+  ribbon: { tag:'Supplier 1 — Paul O. Abbe', color:'#4a9eff', title:'Double Spiral Ribbon Agitator', body:'Counter-rotating inner and outer ribbons. At 65% fill both ribbons are fully submerged. Our 155 kg batch (7×20kg flour + 15kg spice) hits ~65% — mid-range of the 50–70% optimal window. Produces exactly 31 finished 5 kg bags per batch.', cost:'Included in base price', sup:'Paul O. Abbe' },
+  lid: { tag:'Supplier 1 — Paul O. Abbe', color:'#4a9eff', title:'Lockable Gasketed Lid (top 149" from ground)', body:'Lid top at 149" from ground, 35" above deck. Lockable latch, food-grade gasket. RF safety interlock — motor cannot run with grate removed.', cost:'Included in base price', sup:'Paul O. Abbe' },
+  grate: { tag:'Supplier 1 — Paul O. Abbe', color:'#4a9eff', title:'Safety Grate — Loading Surface (top 156" / 42" above deck)', body:'Grate top at 42" above deck (156" from ground). With the 6" step platform the operator\'s feet are 6" higher, so the grate is at 36" above their feet — ideal counter height for loading. RF interlock: motor cannot run with grate removed.', cost:'Included in base price', sup:'Paul O. Abbe' },
+  motor: { tag:'Supplier 1 — Paul O. Abbe', color:'#4a9eff', title:'10 HP Motor — SEW Eurodrive (on END of trough)', body:'Motor mounts on one end of the trough long axis. In the plan view it appears to the right of the trough. In the side view (looking along the short axis) the motor is completely behind the cross-section plane and not visible — this is correct. The operator zone is between the trough back face and the beam face, 41.6" deep — the motor end is beside this zone, not in it. 22A running draw, 208V/3ph/60Hz. VFD recommended: reduces startup inrush from ~130A to ~22A.', cost:'Included in base; VFD add-on $500–$1,200', sup:'Paul O. Abbe / SEW Eurodrive' },
+  cipbar: { tag:'Supplier 1 — Paul O. Abbe', color:'#2a8aff', title:'CIP Internal Spray Bar', body:'Runs the length of the trough. Hot water + alkaline detergent. Always air-purge before water on xanthan gum batches — dry purge removes 90–95% of residue and prevents gel formation. Full CIP: 20–30 min with pre-purge.', cost:'Included in base price', sup:'Paul O. Abbe' },
+  airpurge: { tag:'Supplier 1 — Paul O. Abbe (New)', color:'#f0a500', title:'Air Purge Nozzles ×3 (Trough)', body:'2–3 flat-fan 304 SS nozzles, single external quick-connect. Blasts dry compressed air before CIP water on xanthan gum batches. Also recovers residual product on all batches.', cost:'$300–$500', sup:'Paul O. Abbe — include in blender order' },
+  valve: { tag:'Supplier 1 — Paul O. Abbe', color:'#2dcc7a', title:'Pneumatic Bomb-Bay Discharge Valve (outlet 104.5")', body:'Full-bore valve at trough bottom. Outlet at 104.5" from ground, 9.5" below deck. Hangs through the 52"×28" opening into the hopper below. Confirm discharge flange dimensions before speccing hopper inlet — first call to make.', cost:'Included in base price', sup:'Paul O. Abbe — get flange dims before calling hopper fabricator' },
+  chute: { tag:'Supplier 4 — Ancillary', color:'#8892a4', title:'Discharge Chute (4" dia, 4" long)', body:'304 SS, tri-clamp both ends. Connects valve outlet to hopper inlet. Removes in seconds for cleaning.', cost:'$200–$400', sup:'Local fabricator or industrial supply' },
+  legs: { tag:'Supplier 1 — Paul O. Abbe (Custom)', color:'#4a9eff', title:'Custom Leg Extensions (blender feet at 69" from ground)', body:'Custom extensions bring blender feet to 69" from ground. This positions trough bottom at 106" (8" below deck) and valve outlet at 104.5". The cradle sits on deck and spans the opening. Four legs total.', cost:'Included in cradle package ($1,500–$3,000)', sup:'Paul O. Abbe — specify custom height when ordering' },
+  hopper: { tag:'Supplier 2 — Local SS Fabricator', color:'#2dcc7a', title:'Transition Hopper 425L (top 100.5", bottom 68.5")', body:'Rectangular top 42"×30"×14" tall + 60° cone 18" tall = 32" total. Top at 100.5", bottom at 68.5". 304 SS, electropolished Ra ≤0.5 μm, radiused corners, canted walls, 2× air purge ports, CIP spray ball, 3 reducing funnels, 2× vibrators included.', cost:'$6,300–$11,600 (including vibrators)', sup:'DERA Engineering (Mississauga) · JR Custom Metal Products (Brampton)' },
+  hopperCip: { tag:'Supplier 2 — Local SS Fabricator', color:'#2a8aff', title:'CIP Spray Ball (Hopper)', body:'Internal spray ball, external tri-clamp. Electropolished surface reduces xanthan gum adhesion significantly. Always air-purge before introducing water.', cost:'Included in hopper order', sup:'DERA Engineering or JR Custom' },
+  hopperAir: { tag:'Supplier 2 — Local SS Fabricator (New)', color:'#f0a500', title:'Air Purge Nozzle Ports ×2 (Hopper)', body:'Two ports in rectangular section aimed at transition corners and cone walls. Blasts dry residue before CIP water. Specify as part of the hopper fabrication order.', cost:'$200–$400 (included in hopper estimate)', sup:'DERA Engineering or JR Custom' },
+  vibrator: { tag:'Supplier 2 — Included in Hopper', color:'#2dcc7a', title:'Pneumatic Vibrators ×2', body:'One on cone, one on rectangular section. Fabricator supplies and fits matched to wall mass. Mounts welded at fabrication; vibrators bolt on for easy replacement. Do not buy separately — have the fabricator specify and fit them.', cost:'Included in hopper order ($6,300–$11,600 total)', sup:'Specified and fitted by hopper fabricator' },
+  butterfly: { tag:'Supplier 3 — Fill Equipment', color:'#f0a500', title:'Proportional Butterfly Valve (dispense 64.5")', body:'Electro-pneumatic, recipe-selectable opening %. 30–40% for flour, 80% for coarser. Dispense point at 64.5" from ground. 4–6" bore, 304 SS, tri-clamp ends.', cost:'$1,200–$2,600 (valve + actuator)', sup:'WeighPack Systems · All-Fill Inc. · Spee-Dee Packaging' },
+  funnel: { tag:'Supplier 2 — Local SS Fabricator', color:'#2dcc7a', title:'Reducing Funnels — Set of 3', body:'1.5", 2", 3" outlet sizes. Tri-clamp top. Clamp on/off in 30 seconds. Dust control during flour bagging.', cost:'$600–$1,000 (include in hopper order)', sup:'DERA Engineering or JR Custom' },
+  scale: { tag:'Supplier 3 — Fill Equipment', color:'#f0a500', title:'Scale + Weigh Controller + Bag Station (table 42")', body:'Scale table at 42". Bag opening at ~57" — 7.5" below the 64.5" dispense point. Scale: 18"×18", 0–50 kg, ±5g, foot pedal. Controller: pre-act shutoff, auto-learn correction, 8-SKU recipe memory. Weights: 5.000, 3.778, 1.482, 1.634, 2.026, 2.519, 3.745, 3.9225 kg.', cost:'$1,800–$3,800', sup:'WeighPack Systems · All-Fill Inc. · Spee-Dee Packaging' },
+  stepplatform: { tag:'Supplier 4 — Ancillary', color:'#8892a4', title:'6" Operator Step Platform (maximum safe height)', body:'304 SS, anti-slip, 40"×24", railing on open sides. Positioned between the trough back face and the beam — in the 41.6" operator zone (see side view). Raises grate perceived height to 36" above operator\'s feet. With step, head at 188" from ground: 6" clearance to beam at 194". Do not exceed 6" — this is the maximum with this beam.', cost:'$500–$1,200', sup:'DERA or JR Custom — same order as hopper' }
+};
+
+const tt = (e,id) => {
+  const c=C[id]; if(!c)return;
+  ['tt-tag','tt-ttl','tt-bdy','tt-cst','tt-sup'].forEach((k,i)=>{ document.getElementById(k).textContent=[c.tag,c.title,c.body,c.cost,c.sup][i]; });
+  document.getElementById('tt').classList.add('vis'); mv(e);
+};
+const ht=()=>document.getElementById('tt').classList.remove('vis');
+const mv=e=>{
+  const el=document.getElementById('tt'), x=e.clientX+14, y=e.clientY+14;
+  el.style.left=(x+310>window.innerWidth?x-324:x)+'px';
+  el.style.top=(y+240>window.innerHeight?y-254:y)+'px';
+};
+document.addEventListener('mousemove',e=>{ if(document.getElementById('tt').classList.contains('vis'))mv(e); });
+
+const sel=id=>{
+  const c=C[id]; if(!c)return;
+  ['ip-tag','ip-ttl','ip-cst','ip-sup','ip-bdy'].forEach((k,i)=>{ document.getElementById(k).textContent=[c.tag,c.title,c.cost,c.sup,c.body][i]; });
+  document.getElementById('info').classList.add('vis');
+  document.querySelectorAll('.li').forEach(el=>el.classList.toggle('act',el.dataset.id===id));
+};
+const closePanel=()=>{ document.getElementById('info').classList.remove('vis'); document.querySelectorAll('.li').forEach(el=>el.classList.remove('act')); };
+
+const leg=document.getElementById('legend');
+Object.entries(C).forEach(([id,c])=>{
+  const d=document.createElement('div'); d.className='li'; d.dataset.id=id;
+  const short=c.title.split('(')[0].split('—')[0].trim();
+  const sup=c.tag.split('—').slice(-1)[0].trim();
+  d.innerHTML=`<div class="ldot" style="background:${c.color}"></div><div><div class="lnm">${short}</div><div class="lsp">${sup}</div></div>`;
+  d.onclick=()=>sel(id);
+  leg.appendChild(d);
+});
+</script>
+</body>
+</html>
